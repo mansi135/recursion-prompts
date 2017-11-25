@@ -59,6 +59,7 @@ var sum = function(array) {
 // arraySum([1,[2,3],[[4]],5]); // 15
 var arraySum = function(array) {
 
+	//Note : Passing array itself is very expensive to the memory, a more efficient way would be to pass index
 	var l = array.length;
 	
 	if (l === 0) {
@@ -67,11 +68,15 @@ var arraySum = function(array) {
 
 	var index = l - 1;
 
-	if (Array.isArray(array[index])) {
-		return arraySum(array[index]);
-	} 
+	var thisElementSum;
 
-	return array[index] + arraySum(array.slice(0,index));
+	if (Array.isArray(array[index])) {
+		thisElementSum = arraySum(array[index]);
+	} else {
+		thisElementSum = array[index];
+	}
+
+	return thisElementSum + arraySum(array.slice(0,index));
 	
 
 	
@@ -113,9 +118,20 @@ var sumBelow = function(n) {
 // range(2,9); // [3,4,5,6,7,8]
 var range = function(x, y) {
 
-	if ((y-x) === 1) {
+	if (Math.abs(y-x) === 1 || y-x === 0) {
 		return [];
 	}
+
+	if (y > x) {
+		var arr = [x+1];
+		arr = arr.concat(range(x+1,y));
+	} else {
+		var arr = [x-1];
+		arr = arr.concat(range(x-1,y));
+	}
+	
+
+	return arr;
 
 	//range(x+1,y-1).push
 };
@@ -199,11 +215,52 @@ var palindrome = function(string) {
 // modulo(17,5) // 2
 // modulo(22,6) // 4
 var modulo = function(x, y) {
+
+	if (y === 0) {
+        return 'Nan';
+    } 
+
+    if (x === y) {
+        return 0;
+    }
+
+    if (x < y && x >= 0) {
+        return x;
+    }
+
+    if (x < 0 && y > 0) 
+        x = -x;
+    if ( x > 0 && y < 0)
+        y = -y;
+    if ( x < 0 && y < 0) {
+        x = -x;
+        y = -y;
+    }
+
+    if ((x - y) < y) {
+        return (x-y);
+    }
+
+    return modulo((x-y), y); 
+
 };
 
 // 12. Write a function that multiplies two numbers without using the * operator or
 // Math methods.
 var multiply = function(x, y) {
+
+	if (y === 0) {
+		return 0;
+	}
+
+	if (y > 0) {
+		return (x + multiply(x, y-1));
+	}
+
+	if (y < 0) {
+		return (-x + multiply(x, y+1));
+	}
+	
 };
 
 // 13. Write a function that divides two numbers without using the / operator or
@@ -224,21 +281,79 @@ var gcd = function(x, y) {
 // compareStr('house', 'houses') // false
 // compareStr('tomato', 'tomato') // true
 var compareStr = function(str1, str2) {
+
+	if (str1.length === 0) {
+		if (str2.length === 0) {
+			return true;
+		} else {
+			return false;
+		}
+	} else if (str2.length === 0) {
+		if (str1.length === 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+
+	if (str1.charAt(0) !== str2.charAt(0)) {
+		return false;
+	}
+
+	return compareStr(str1.substr(1),str2.substr(1));
+
 };
+
+
 
 // 16. Write a function that accepts a string and creates an array where each letter
 // occupies an index of the array.
 var createArray = function(str) {
+
+	if (str.length === 0) {
+		return [];
+	}
+
+	var arr = [str.charAt(0)];
+
+	arr = arr.concat(createArray(str.substr(1)));
+
+	return arr;
+
 };
 
 // 17. Reverse the order of an array
 var reverseArr = function(array) {
+
+	var l = array.length;
+
+	if (l === 0) {
+		return [];
+	}
+
+	var rArray = [array[l-1]];
+
+	rArray = rArray.concat(reverseArr(array.slice(0,l-1)));
+
+	return rArray;
+
 };
 
 // 18. Create a new array with a given value and length.
 // buildList(0,5) // [0,0,0,0,0]
 // buildList(7,3) // [7,7,7]
 var buildList = function(value, length) {
+
+	if (length === 0) {
+		return [];
+	}
+
+	var list = [value];
+
+	list = list.concat(buildList(value,length-1));
+
+	return list;
 };
 
 // 19. Implement FizzBuzz. Given integer n, return an array of the string representations of 1 to n.
@@ -247,12 +362,44 @@ var buildList = function(value, length) {
 // For numbers which are multiples of both three and five, output “FizzBuzz” instead of the number.
 // fizzBuzz(5) // ['1','2','Fizz','4','Buzz']
 var fizzBuzz = function(n) {
+
+	if (n === 0) {
+		return [];
+	}
+
+	var arr = [];
+
+	if ((n % 3 === 0 ) && (n % 5 === 0)) {
+		arr.push('FizzBuzz');
+	} else if (n % 3 === 0 ) {
+		arr.push('Fizz');
+	} else if (n % 5 === 0 ) {
+		arr.push('Buzz');
+	} else {
+		arr.push(String(n));
+	}
+
+	arr = fizzBuzz(n-1).concat(arr);
+
+	/*if (n % 2 !== 0)
+		arr = arr.reverse(); */
+
+	return arr;
+
 };
 
 // 20. Count the occurence of a value in a list.
 // countOccurrence([2,7,4,4,1,4], 4) // 3
 // countOccurrence([2,'banana',4,4,1,'banana'], 'banana') // 2
 var countOccurrence = function(array, value) {
+	//Note - whenever we want to store some type of state , we do it by doing +1 + return (+1) ...
+
+	if (array.length === 0) {
+		return 0;
+	}
+
+	var noOfOccr = (array[0] === value) + countOccurrence(array.slice(1),value);
+	return noOfOccr;
 };
 
 
